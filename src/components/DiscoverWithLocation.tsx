@@ -169,7 +169,7 @@ export function DiscoverWithLocation() {
                   {sliderEvents.length} event{sliderEvents.length === 1 ? "" : "s"}
                 </span>
               </div>
-              <div className="relative min-h-[15rem] sm:min-h-[16rem]">
+              <div className="relative min-h-[16rem] sm:min-h-[18rem]">
                 <div
                   className="absolute inset-0 flex transition-transform duration-700 ease-out"
                   style={{ transform: `translateX(-${sliderIndex * 100}%)` }}
@@ -177,7 +177,7 @@ export function DiscoverWithLocation() {
                   {sliderPages.map((page, pageIdx) => (
                     <div
                       key={pageIdx}
-                      className="grid min-w-full grid-cols-4 gap-3 px-3 py-3 sm:px-4"
+                      className="grid min-w-full grid-cols-2 gap-3 px-3 py-3 sm:grid-cols-4 sm:px-4"
                     >
                       {[0, 1, 2, 3].map((colIdx) => {
                         const event = page[colIdx];
@@ -193,7 +193,7 @@ export function DiscoverWithLocation() {
                             href={`/events/${event.id}`}
                             className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-700/80 bg-slate-950/95 text-slate-200 hover:border-sky-400/80 hover:bg-slate-900/95"
                           >
-                            <div className="relative h-20 w-full flex-shrink-0 overflow-hidden sm:h-30">
+                            <div className="relative h-24 w-full flex-shrink-0 overflow-hidden sm:h-32">
                               {imageUrl ? (
                                 <Image
                                   src={imageUrl}
@@ -310,7 +310,7 @@ export function DiscoverWithLocation() {
             </div>
           </div>
 
-          <div className="relative mt-1 h-[320px] w-full sm:h-[380px] rounded-2xl border border-slate-700/80 bg-slate-950/90 overflow-hidden">
+            <div className="relative mt-1 h-[260px] w-full sm:h-[360px] rounded-2xl border border-slate-700/80 bg-slate-950/90 overflow-hidden">
             <EventMap
               events={filteredEvents.length > 0 ? filteredEvents : events}
               className="h-full w-full"
