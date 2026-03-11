@@ -9,6 +9,23 @@ import { LocationAutocomplete } from "./LocationAutocomplete";
 const CATEGORIES = ["Music", "Nightlife", "Technology", "Business", "Wellness", "Food"];
 const SF_CENTER = { lat: 37.7749, lng: -122.4194 };
 
+/** Format a Date for datetime-local input (YYYY-MM-DDTHH:mm). Backend expects ISO string; we send toISOString(). */
+function toDateTimeLocal(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const h = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${y}-${m}-${day}T${h}:${min}`;
+}
+
+/** Minimum value for datetime-local (now, rounded to next 15 min). */
+function getMinDateTimeLocal(): string {
+  const d = new Date();
+  d.setMinutes(Math.ceil(d.getMinutes() / 15) * 15, 0, 0);
+  return toDateTimeLocal(d);
+}
+
 export function HostEventForm() {
   const { user } = useAuth();
   const router = useRouter();
@@ -19,6 +36,7 @@ export function HostEventForm() {
   const [lng, setLng] = useState(SF_CENTER.lng);
   const [category, setCategory] = useState("Music");
   const [startAt, setStartAt] = useState("");
+  const [endAt, setEndAt] = useState("");
   const [price, setPrice] = useState<number | "">(0);
   const [isFree, setIsFree] = useState(true);
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -62,7 +80,9 @@ export function HostEventForm() {
         const { url } = await uploadEventImage(file);
         imageUrls.push(url);
       }
-      const date = startAt ? new Date(startAt) : new Date(Date.now() + 2 * 60 * 60 * 1000);
+      // Backend expects ISO 8601 strings; controller uses new Date(startAt) / new Date(endAt)
+      const startDate = startAt ? new Date(startAt) : new Date(Date.now() + 2 * 60 * 60 * 1000);
+      const endDate = endAt ? new Date(endAt) : undefined;
       const priceCents = isFree ? 0 : Math.round((typeof price === "number" ? price : 0) * 100);
       await events.create({
         name: name || "My Event",
@@ -70,7 +90,8 @@ export function HostEventForm() {
         location: location || "San Francisco",
         lat,
         lng,
-        startAt: date.toISOString(),
+        startAt: startDate.toISOString(),
+        ...(endDate && endDate.getTime() > startDate.getTime() ? { endAt: endDate.toISOString() } : {}),
         highlight: "Just listed",
         imageUrls,
         priceFrom: priceCents,
@@ -107,25 +128,48 @@ export function HostEventForm() {
         <label className="block text-xs font-medium uppercase tracking-[0.18em] text-slate-300">
           Location
         </label>
-        <div className="grid gap-2 sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-          <LocationAutocomplete
-            value={location}
-            onChange={(addr, newLat, newLng) => {
-              setLocation(addr);
-              setLat(newLat || SF_CENTER.lat);
-              setLng(newLng || SF_CENTER.lng);
-            }}
-            placeholder="Address, city, zip, county..."
-            className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/80 focus:outline-none focus:ring-1 focus:ring-sky-500/70"
-          />
-          <input
-            type="datetime-local"
-            value={startAt}
-            onChange={(e) => setStartAt(e.target.value)}
-            className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/80 focus:outline-none focus:ring-1 focus:ring-sky-500/70"
-          />
-        </div>
+        <LocationAutocomplete
+          value={location}
+          onChange={(addr, newLat, newLng) => {
+            setLocation(addr);
+            setLat(newLat || SF_CENTER.lat);
+            setLng(newLng || SF_CENTER.lng);
+          }}
+          placeholder="Address, city, zip, county..."
+          className="w-full rounded-2xl border border-slate-700/80 bg-slate-950/70 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/80 focus:outline-none focus:ring-1 focus:ring-sky-500/70"
+        />
         <p className="text-xs text-slate-500">Select from suggestions for accurate address, zip, and coordinates</p>
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-xs font-medium uppercase tracking-[0.18em] text-slate-300">
+          Date & time
+        </label>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="space-y-1">
+            <span className="text-[11px] text-slate-400">Start</span>
+            <input
+              type="datetime-local"
+              value={startAt}
+              onChange={(e) => setStartAt(e.target.value)}
+              min={getMinDateTimeLocal()}
+              className="w-full rounded-2xl border border-slate-700/80 bg-slate-950/70 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/80 focus:outline-none focus:ring-1 focus:ring-sky-500/70 [color-scheme:dark]"
+              aria-label="Event start date and time"
+            />
+          </div>
+          <div className="space-y-1">
+            <span className="text-[11px] text-slate-400">End (optional)</span>
+            <input
+              type="datetime-local"
+              value={endAt}
+              onChange={(e) => setEndAt(e.target.value)}
+              min={startAt || getMinDateTimeLocal()}
+              className="w-full rounded-2xl border border-slate-700/80 bg-slate-950/70 px-4 py-2.5 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-400/80 focus:outline-none focus:ring-1 focus:ring-sky-500/70 [color-scheme:dark]"
+              aria-label="Event end date and time"
+            />
+          </div>
+        </div>
+        <p className="text-xs text-slate-500">Times are in your local timezone. Sent to backend as ISO 8601.</p>
       </div>
       <div className="space-y-2">
         <label className="block text-xs font-medium uppercase tracking-[0.18em] text-slate-300">

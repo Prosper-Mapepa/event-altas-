@@ -153,10 +153,10 @@ export function DiscoverWithLocation() {
                 </span>{" "}
                 nearby
             </span>
-            <span className="flex items-center gap-1.5">
+            {/* <span className="flex items-center gap-1.5">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400/80" />
               <span className="text-slate-300">Under 90s to find something tonight</span>
-            </span>
+            </span> */}
           </div>
 
           {sliderPages.length > 0 && (
