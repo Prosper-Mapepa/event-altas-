@@ -1,0 +1,174 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
+import { ApiError } from "@/lib/api";
+
+export default function SignUpPage() {
+  const { signUp } = useAuth();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [role, setRole] = useState<"explorer" | "business" | "admin">("explorer");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await signUp(email, password, name || undefined, role);
+    } catch (err) {
+      const msg =
+        err instanceof ApiError && Array.isArray((err.data as { details?: unknown })?.details)
+          ? ((err.data as { details: Array<{ message: string }> }).details)
+              .map((d) => d.message)
+              .join(", ")
+          : err instanceof ApiError
+            ? err.message
+            : "Create account failed";
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="glass-panel flex flex-col gap-6 border-slate-700/80 bg-slate-950/90 px-6 py-8 sm:px-8">
+      <div className="space-y-2 text-center">
+        <h1 className="text-xl font-semibold tracking-tight text-slate-50 sm:text-2xl">
+          Create account
+        </h1>
+        <p className="text-sm text-slate-400">
+          Start discovering events and saving your favorites.
+        </p>
+      </div>
+
+      <form className="space-y-4" onSubmit={handleSubmit}>
+        {error && (
+          <div className="rounded-xl bg-red-500/10 px-4 py-2 text-sm text-red-300">{error}</div>
+        )}
+        <div className="space-y-2">
+          <label
+            htmlFor="name"
+            className="block text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400"
+          >
+            Full name
+          </label>
+          <input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Alex Johnson"
+            className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500/70 focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="email"
+            className="block text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400"
+          >
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500/70 focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+          />
+        </div>
+
+        <div className="space-y-2">
+          <label
+            htmlFor="password"
+            className="block text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400"
+          >
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="••••••••"
+            required
+            minLength={8}
+            className="w-full rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm text-slate-100 placeholder:text-slate-500 focus:border-sky-500/70 focus:outline-none focus:ring-1 focus:ring-sky-500/50"
+          />
+          <p className="text-[10px] text-slate-500">
+            At least 8 characters with a number or symbol.
+          </p>
+        </div>
+
+        <div className="space-y-2">
+          <label className="block text-[11px] font-medium uppercase tracking-[0.12em] text-slate-400">
+            Account type
+          </label>
+          <div className="grid grid-cols-3 gap-2">
+            {(["explorer", "business", "admin"] as const).map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setRole(r)}
+                className={`rounded-xl border px-3 py-2.5 text-xs font-medium transition-colors ${
+                  role === r
+                    ? "border-sky-500/60 bg-sky-500/20 text-sky-200"
+                    : "border-slate-700/80 bg-slate-950/70 text-slate-300 hover:border-slate-600/80"
+                }`}
+              >
+                {r.charAt(0).toUpperCase() + r.slice(1)}
+              </button>
+            ))}
+          </div>
+          <p className="text-[10px] text-slate-500">
+            Business can post events (requires admin approval). Admin can approve events.
+          </p>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-xl bg-sky-500/90 px-4 py-3 text-sm font-semibold uppercase tracking-[0.12em] text-slate-950 shadow-[0_12px_40px_rgba(56,189,248,0.4)] transition-colors hover:bg-sky-400 disabled:opacity-60"
+        >
+          {loading ? "Creating…" : "Create account"}
+        </button>
+      </form>
+
+      <div className="relative">
+        <div className="absolute inset-0 flex items-center">
+          <div className="w-full border-t border-slate-700/80" />
+        </div>
+        <div className="relative flex justify-center text-[11px]">
+          <span className="bg-slate-950/95 px-3 text-slate-500">
+            or sign up with
+          </span>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-3">
+        <button className="flex items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm text-slate-200 transition-colors hover:bg-slate-900/80 hover:border-slate-600/80">
+          <span className="text-base">G</span>
+          Google
+        </button>
+        <button className="flex items-center justify-center gap-2 rounded-xl border border-slate-700/80 bg-slate-950/70 px-4 py-3 text-sm text-slate-200 transition-colors hover:bg-slate-900/80 hover:border-slate-600/80">
+          <span className="text-base">⌘</span>
+          Apple
+        </button>
+      </div>
+
+      <p className="text-center text-[11px] text-slate-500">
+        Already have an account?{" "}
+        <Link href="/auth/sign-in" className="font-medium text-sky-400 hover:text-sky-300">
+          Sign in
+        </Link>
+      </p>
+    </div>
+  );
+}
