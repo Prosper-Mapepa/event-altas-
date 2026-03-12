@@ -203,13 +203,13 @@ export function DiscoverWithLocation() {
                           (event.imageUrls && event.imageUrls.length > 0
                             ? event.imageUrls[0]
                             : undefined);
+                        const globalIndex = pageIdx * 4 + colIdx;
                         return (
-                          <Link
+                          <div
                             key={event.id}
-                            href={`/events/${event.id}`}
-                            className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-xl border border-slate-700/80 bg-slate-950/95 text-slate-200 hover:border-sky-400/80 hover:bg-slate-900/95"
+                            className="flex min-h-0 min-w-0 flex-col overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-950/90"
                           >
-                            <div className="relative h-24 w-full flex-shrink-0 overflow-hidden sm:h-32">
+                            <div className="relative h-28 w-full shrink-0 overflow-hidden sm:h-32">
                               {imageUrl ? (
                                 <Image
                                   src={imageUrl}
@@ -223,27 +223,10 @@ export function DiscoverWithLocation() {
                                 </div>
                               )}
                             </div>
-                            <div className="flex min-w-0 flex-1 flex-col gap-0.5 px-3 py-2.5">
-                              <div className="flex items-center justify-between gap-2">
-                                <span className="truncate text-xs font-semibold uppercase tracking-wider text-slate-300">
-                                  {event.category}
-                                </span>
-                                <span className="whitespace-nowrap text-xs text-slate-400">
-                                  {event.distance}
-                                </span>
-                              </div>
-                              <p className="truncate text-sm font-semibold leading-snug text-slate-50">
-                                {event.name}
-                              </p>
-                              <p className="line-clamp-2 min-h-[2.5em] text-xs leading-snug text-slate-400">
-                                {event.location}
-                              </p>
-                              <div className="mt-0.5 flex items-center justify-between text-xs text-slate-400">
-                                <span>{event.time}</span>
-                                <span className="font-semibold text-sky-300">{event.price}</span>
-                              </div>
+                            <div className="flex min-h-0 flex-1 flex-col px-3 pb-3 pt-3">
+                              <EventCard event={event} index={globalIndex} size="default" embedded />
                             </div>
-                          </Link>
+                          </div>
                         );
                       })}
                     </div>
