@@ -28,6 +28,7 @@ export function DiscoverWithLocation() {
   }));
   const [events, setEvents] = useState<ApiEvent[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string | "all">("all");
+  const [radiusKm, setRadiusKm] = useState(50);
   const [loading, setLoading] = useState(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [sliderIndex, setSliderIndex] = useState(0);
@@ -43,7 +44,7 @@ export function DiscoverWithLocation() {
     setLoading(true);
     setFetchError(null);
     try {
-      const res = await eventsApi.getNearby({ lat: effectiveLat, lng: effectiveLng, limit: 20 });
+      const res = await eventsApi.getNearby({ lat: effectiveLat, lng: effectiveLng, radiusKm, limit: 50 });
       setEvents(res.events ?? []);
     } catch {
       setFetchError("Unable to load events. Make sure the backend is running.");
@@ -51,20 +52,20 @@ export function DiscoverWithLocation() {
     } finally {
       setLoading(false);
     }
-  }, [effectiveLat, effectiveLng]);
+  }, [effectiveLat, effectiveLng, radiusKm]);
 
   useEffect(() => {
     if (region.type === "current" && (status === "prompting" || status === "idle")) return;
     fetchEvents();
-  }, [region.type, region.type === "city" ? region.lat : 0, region.type === "city" ? region.lng : 0, status, fetchEvents]);
+  }, [region.type, region.type === "city" ? region.lat : 0, region.type === "city" ? region.lng : 0, status, radiusKm, fetchEvents]);
 
   const handleUseCurrentLocation = useCallback(() => {
     setRegion({ type: "current", label: "Your location" });
     requestLocation();
   }, [requestLocation]);
 
-  const radiusKm = 5;
   const mapCenterOverride = region.type === "city" ? { lat: region.lat, lng: region.lng } : null;
+  const radiusOptions = [5, 10, 25, 50, 100] as const;
 
   const categoryChips: { id: string; label: string; icon: string }[] = [
     { id: "music", label: "Music", icon: "🎤" },
@@ -138,10 +139,25 @@ export function DiscoverWithLocation() {
             </p>
           </div>
 
-          <div className="pill inline-flex w-fit flex-wrap items-center gap-2 rounded-full border border-slate-700/80 bg-slate-950/80 px-3 py-1.5 text-sm text-slate-200">
-            <span className="font-medium text-sky-300">{radiusKm} km radius</span>
-            <span className="text-slate-500">·</span>
-            <span className="text-slate-400">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-xs font-medium uppercase tracking-[0.14em] text-slate-400">Proximity</span>
+            <div className="flex flex-wrap gap-1 rounded-2xl border border-slate-700/80 bg-slate-950/80 p-1">
+              {radiusOptions.map((r) => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setRadiusKm(r)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-medium transition-colors ${
+                    radiusKm === r
+                      ? "bg-sky-500/20 text-sky-200 ring-1 ring-sky-500/50"
+                      : "text-slate-400 hover:bg-slate-800/80 hover:text-slate-200"
+                  }`}
+                >
+                  {r} km
+                </button>
+              ))}
+            </div>
+            <span className="text-sm text-slate-400">
               {loading ? "…" : `${filteredEvents.length} events${selectedCategory !== "all" ? ` in ${categoryChips.find((c) => c.id === selectedCategory)?.label ?? ""}` : " live"}`}
             </span>
           </div>
@@ -160,8 +176,8 @@ export function DiscoverWithLocation() {
           </div>
 
           {sliderPages.length > 0 && (
-            <div className="mt-4 w-full overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-950/80 h-75">
-              <div className="flex items-center justify-between border-b border-slate-700/80 px-4 py-2.5 text-sm text-slate-300 sm:px-5">
+            <div className="mt-4 w-full overflow-hidden rounded-2xl border border-slate-700/80 bg-slate-950/80 h-85 sm:h-75">
+              <div className="flex items-center justify-between border-b border-slate-700/80 px-4 py-2.5 text-sm text-slate-300 sm:px-5 ">
                 <span className="font-semibold uppercase tracking-[0.12em] text-slate-200 text-base">
                   In this area
                 </span>
@@ -294,7 +310,7 @@ export function DiscoverWithLocation() {
       </section>
 
       <section className="w-full px-4 pb-12 sm:px-6 lg:px-10">
-        <div className="glass-panel mx-auto flex w-full max-w-full lg:ml-4 flex-col gap-4 border-slate-700/80 bg-slate-950/80 px-4 py-5 sm:px-6 sm:py-6">
+        <div className="glass-panel mx-auto flex w-full max-w-full lg:ml-4 flex-col gap-4 border-slate-700/80 bg-slate-950/80 px-4 py-4 sm:px-5 sm:py-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-base text-slate-300">
               <span className="inline-flex items-center rounded-full bg-slate-900/80 px-3 py-1 text-sm font-semibold uppercase tracking-[0.18em] text-slate-300 ring-1 ring-slate-700/90">
@@ -310,7 +326,7 @@ export function DiscoverWithLocation() {
             </div>
           </div>
 
-            <div className="relative mt-1 h-[260px] w-full sm:h-[360px] rounded-2xl border border-slate-700/80 bg-slate-950/90 overflow-hidden">
+            <div className="relative mt-1 h-[240px] w-full shrink-0 rounded-2xl border border-slate-700/80 bg-slate-950/90 overflow-hidden sm:h-[320px] md:h-[360px]">
             <EventMap
               events={filteredEvents.length > 0 ? filteredEvents : events}
               className="h-full w-full"
@@ -329,9 +345,9 @@ export function DiscoverWithLocation() {
                 <span className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-400">
                   Smart feed
                 </span>
-                <span className="rounded-full bg-slate-900/80 px-3 py-1 text-sm text-slate-200 ring-1 ring-slate-700/70">
+                {/* <span className="rounded-full bg-slate-900/80 px-3 py-1 text-sm text-slate-200 ring-1 ring-slate-700/70">
                   Sorted by time · distance · hype
-                </span>
+                </span> */}
               </div>
               <Link
                 href="/events"

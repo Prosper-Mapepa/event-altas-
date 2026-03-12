@@ -63,7 +63,7 @@ export function MapWithLocation() {
   const mapCenterOverride = region.type === "city" ? { lat: region.lat, lng: region.lng } : null;
 
   return (
-    <div className="relative flex min-h-[calc(100vh-64px)] w-full flex-col gap-6 px-4 pb-20 pt-10 sm:px-6 lg:px-10">
+    <div className="relative flex min-h-[calc(100vh-64px)] w-full flex-col gap-6 px-4 pb-20 pt-10 sm:px-6 lg:px-10 md:pb-8">
       <div className="glow-orbit" />
       <div className="grain" />
 
@@ -84,17 +84,17 @@ export function MapWithLocation() {
         />
       </header>
 
-      <section className="relative z-0 mt-2 flex flex-1 flex-col gap-4 lg:flex-row">
-        <div className="glass-panel relative flex-1 overflow-hidden border-slate-700/80 bg-slate-950/80">
+      <section className="relative z-0 mt-2 flex min-h-0 flex-1 flex-col gap-4 lg:flex-row">
+        <div className="glass-panel relative flex min-h-[280px] flex-1 flex-col overflow-hidden border-slate-700/80 bg-slate-950/80">
           <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(56,189,248,0.45),transparent_55%),radial-gradient(circle_at_100%_0,rgba(129,140,248,0.28),transparent_55%),radial-gradient(circle_at_50%_100%,rgba(45,212,191,0.22),transparent_60%)] opacity-70 mix-blend-screen" />
-          <div className="relative flex h-full flex-col gap-3 p-4 sm:p-5">
-            <div className="flex items-center justify-between text-sm text-slate-300">
+          <div className="relative flex min-h-0 flex-1 flex-col gap-2 px-4 py-3 sm:gap-3 sm:px-5 sm:py-4">
+            <div className="flex shrink-0 items-center justify-between text-sm text-slate-300">
               <span className="rounded-full bg-slate-900/90 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300 ring-1 ring-slate-700/80">
                 Map preview
               </span>
-              <span className="text-base text-sky-200">Click pins for event preview</span>
+              <span className="text-sm text-sky-200 sm:text-base">Click pins for event preview</span>
             </div>
-            <div className="relative mt-2 min-h-[320px] flex-1 sm:min-h-[400px]">
+            <div className="relative h-[260px] w-full shrink-0 sm:h-[340px] md:h-[400px]">
               <EventMap
                 events={events}
                 className="h-full w-full"

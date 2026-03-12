@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { NearbyEvent } from "@/lib/events";
 
@@ -11,6 +12,9 @@ type EventCardProps = {
 
 export function EventCard({ event, index, size = "default", embedded = false }: EventCardProps) {
   const isLarge = size === "large";
+  const imageUrl =
+    event.imageUrl ??
+    (event.imageUrls && event.imageUrls.length > 0 ? event.imageUrls[0] : undefined);
 
   return (
     <article
@@ -18,10 +22,26 @@ export function EventCard({ event, index, size = "default", embedded = false }: 
         embedded
           ? "rounded-none border-0 bg-transparent shadow-none"
           : `rounded-2xl border border-slate-700/60 bg-slate-950/90 shadow-lg shadow-black/30 ring-1 ring-white/5 hover:-translate-y-0.5 hover:border-slate-600/80 hover:bg-slate-900/95 hover:shadow-xl hover:shadow-black/35`
-      } ${isLarge ? "p-4 sm:p-5" : embedded ? "p-0" : "p-3.5 sm:p-4"}`}
+      } ${isLarge ? "p-4 sm:p-5" : embedded ? "p-0" : "p-0"}`}
     >
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_0_0,rgba(56,189,248,0.06),transparent_60%)] opacity-0 transition-opacity group-hover:opacity-100 pointer-events-none" />
-      <div className="relative flex min-w-0 flex-1 flex-col gap-3">
+      {!embedded && (
+        <div className="relative h-36 w-full shrink-0 overflow-hidden sm:h-40">
+          {imageUrl ? (
+            <Image
+              src={imageUrl}
+              alt={event.name}
+              fill
+              className="object-cover"
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-800 via-slate-900 to-slate-950 text-xs text-slate-500">
+              No image
+            </div>
+          )}
+        </div>
+      )}
+      <div className={`relative flex min-w-0 flex-1 flex-col gap-3 ${!embedded ? "p-3.5 sm:p-4" : ""}`}>
         {/* Top row: rank + time on left, distance on right */}
         <div className="flex items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
